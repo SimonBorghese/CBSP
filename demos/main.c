@@ -7,19 +7,17 @@
 
 #include "CBSP.h"
 
-#define SCALE (1/4)
-
-char filename[50];
-// Mental Health stigma
-char *data;
 
 CBSP *fileowo;
 int main()
 {
+    // Open file with CBSP
     fileowo = CBSP_loadBSP("test.bsp");
+    // Read signature & version
     printf("BSP Signature: %s\n", fileowo->mainHeader->sig);
     printf("BSP Version: %x\n", fileowo->mainHeader->version);
     printf("Reading 11 available properties\n");
+    // Read each property
     for (int x = 0; x < fileowo->nEntityCount; x++){
         printf("Found entity, name: %s offset: %d\n", fileowo->mEntity[x].classname, fileowo->mEntity[x].offset);
     }
