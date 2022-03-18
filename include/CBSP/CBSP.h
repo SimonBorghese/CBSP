@@ -43,23 +43,23 @@ typedef struct{
 
 // All of the location of each lump
 enum cBSPLumps{
-    Entity      = 0,
-    Text        = 1,
-    Plane       = 2,
-    Node        = 3,
-    Leaf        = 4,
-    LeafFace    = 5,
-    LeafBrush   = 6,
-    Model       = 7,
-    Brush       = 8,
-    BrushSide   = 9,
-    Vertex      = 10,
-    Meshes      = 11,
-    Effect       = 12,
-    Faces       = 13,
-    LightMap    = 14,
-    LightIllum  = 15,
-    Vis         = 16
+    cBSP_Entity      = 0,
+    cBSP_Text        = 1,
+    cBSP_Plane       = 2,
+    cBSP_Node        = 3,
+    cBSP_Leaf        = 4,
+    cBSP_LeafFace    = 5,
+    cBSP_LeafBrush   = 6,
+    cBSP_Model       = 7,
+    cBSP_Brush       = 8,
+    cBSP_BrushSide   = 9,
+    cBSP_Vertex      = 10,
+    cBSP_Meshes      = 11,
+    cBSP_Effect       = 12,
+    cBSP_Faces       = 13,
+    cBSP_LightMap    = 14,
+    cBSP_LightIllum  = 15,
+    cBSP_Vis         = 16
 };
 
 // Entity Type
@@ -369,18 +369,18 @@ CBSP* CBSP_loadBSP(const char *filename){
     free(data);
     if (target->mainHeader != NULL){
         // F o r m a t t i n g
-        target->nEnt =          CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, Entity,     sizeof(cbsp_string),     (uint8_t**)&target->mINTERNALEntities);
-        target->nTex =          CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, Text,       sizeof(CBSPTexture),     (uint8_t**)&target->mTextures);
-        target->nPlane =        CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, Plane,      sizeof(CBSPPlane),       (uint8_t**)&target->mPlanes);
-        target->nNodes =        CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, Node,       sizeof(CBSPNode),        (uint8_t**)&target->mNodes);
-        target->nLeafs =        CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, Leaf,       sizeof(CBSPLeaf),        (uint8_t**)&target->mLeafs);
-        target->nLeaffaces =     CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, LeafFace,   sizeof(CBSPLeafFaces),   (uint8_t**)&target->mLeafFaces);
-        target->nLeafBrushes =  CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, LeafBrush,  sizeof(CBSPLeafBrushes), (uint8_t**)&target->mLeafBrushes);
-        target->nModels =       CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, Model,      sizeof(CBSPModel),       (uint8_t**)&target->mModels);
-        target->nBrushes =      CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, Brush,      sizeof(CBSPBrush),       (uint8_t**)&target->mBrushes);
-        target->nBrushSides =   CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, BrushSide,  sizeof(CBSPBrushsides),  (uint8_t**)&target->mBrushSides);
-        target->nVertexs =      CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, Vertex,     sizeof(CBSPVertex),      (uint8_t**)&target->mVertices);
-        target->nMeshes =       CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, Meshes,     sizeof(CBSPMesh),        (uint8_t**)&target->mMeshes);
+        target->nEnt =          CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, cBSP_Entity,     sizeof(cbsp_string),     (uint8_t**)&target->mINTERNALEntities);
+        target->nTex =          CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, cBSP_Text,       sizeof(CBSPTexture),     (uint8_t**)&target->mTextures);
+        target->nPlane =        CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, cBSP_Plane,      sizeof(CBSPPlane),       (uint8_t**)&target->mPlanes);
+        target->nNodes =        CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, cBSP_Node,       sizeof(CBSPNode),        (uint8_t**)&target->mNodes);
+        target->nLeafs =        CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, cBSP_Leaf,       sizeof(CBSPLeaf),        (uint8_t**)&target->mLeafs);
+        target->nLeaffaces =     CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, cBSP_LeafFace,   sizeof(CBSPLeafFaces),   (uint8_t**)&target->mLeafFaces);
+        target->nLeafBrushes =  CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, cBSP_LeafBrush,  sizeof(CBSPLeafBrushes), (uint8_t**)&target->mLeafBrushes);
+        target->nModels =       CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, cBSP_Model,      sizeof(CBSPModel),       (uint8_t**)&target->mModels);
+        target->nBrushes =      CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, cBSP_Brush,      sizeof(CBSPBrush),       (uint8_t**)&target->mBrushes);
+        target->nBrushSides =   CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, cBSP_BrushSide,  sizeof(CBSPBrushsides),  (uint8_t**)&target->mBrushSides);
+        target->nVertexs =      CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, cBSP_Vertex,     sizeof(CBSPVertex),      (uint8_t**)&target->mVertices);
+        target->nMeshes =       CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, cBSP_Meshes,     sizeof(CBSPMesh),        (uint8_t**)&target->mMeshes);
 
 
         const char *classname;
@@ -389,7 +389,7 @@ CBSP* CBSP_loadBSP(const char *filename){
         for (int e = 0; e < target->nEnt; e++){
                 if (target->mINTERNALEntities[e] == '{'){
                         classname = CBSP_INTERNAL_getKeyFromEntity(target, &target->mINTERNALEntities[e], e, "classname");
-                        target->mEntity = realloc(target->mEntity, sizeof(CBSP_Entity) * ++entCount);
+                        target->mEntity = (CBSP_Entity*) realloc(target->mEntity, sizeof(CBSP_Entity) * ++entCount);
                         if (target->mEntity == NULL){
                             printf("FAILED TO ALLOCATE MEMORY FOR BSP ENTITY LOADER\n");
                             break;
