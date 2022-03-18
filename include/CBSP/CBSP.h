@@ -9,6 +9,7 @@
 */
 
 #include <stdint.h>
+#include <string.h>
 
 // Basic BSP Type Def
 typedef uint8_t cbsp_ubyte ;
@@ -272,8 +273,9 @@ const char * CBSP_INTERNAL_getKeyFromEntity(CBSP *target, char *targetstr, cbsp_
             if (inquotes){
                 if (str[i] != '\n'){
                     foundstr[stringlen] = str[i];
-                    //printf("Adding: %c\n", foundstr[stringlen]);
                     stringlen++;
+                    // Add NULL so length could be easily found
+                    foundstr[stringlen] = '\0';
                 }
             }
         }
@@ -286,8 +288,59 @@ const char * CBSP_INTERNAL_getKeyFromEntity(CBSP *target, char *targetstr, cbsp_
     return (const char *) CBSP_EOF_FAILURE;
 }
 
+// Oh look, another dumpster fire function, let me explain lol
+float* CBSP_INTERNAL_convertStringToOrigin(const char *value){
+    // Allocate enough space for our target origin float array
+    float *position = (float*) malloc(sizeof(float) * 3);
+    // Allocate enough space for our string that will contain our string (before it's converted to float)
+    char *currentstr = (char*) malloc(sizeof(char) * strlen(value));
+    // The current position in the string above
+    int strpos = 0;
+    // The current float we're on
+    int currentNum = 0;
+    // Iterate through the string
+    for (int p = 0; p < (int) strlen(value); p++){
+        switch (value[p]){
+        case ' ':
+            // If it's a space, end the current number and convert it to float
+            position[currentNum] = (float) atof(currentstr);
+            // Iterate to the next number
+            currentNum++;
+            // Reset the string
+            strpos = 0;
+            // If we're beyond the third number, return, something's wrong
+            if (currentNum > 2){
+                free(currentstr);
+                return position;
+            }
+            break;
+        default:
+            // Add the current character to the end
+            currentstr[strpos++] = value[p];
+            // Add NULL to the end so length can be properly detected
+            currentstr[strpos] = '\0';
+            break;
+        }
+    }
+    // If we made it to the end, convert the current string to float & return
+    position[currentNum] = (float) atof(currentstr);
+    free(currentstr);
+    return position;
+}
+
 const char * CBSP_getKeyFromEntity(CBSP_Entity *ent, const char *key){
     return CBSP_INTERNAL_getKeyFromEntity((CBSP*) ent->CBSP, &((CBSP*)ent->CBSP)->mINTERNALEntities[ent->offset], ent->offset, key);
+}
+
+void CBSP_getOriginFromEntity(CBSP_Entity *ent, float **target){
+    if (target == NULL){
+        return;
+    }
+    const char *raworigin = CBSP_getKeyFromEntity(ent, "origin");
+    if (strcmp(raworigin, CBSP_getKeyFromEntity_FAILURE) != 0 && strcmp(raworigin, CBSP_EOF_FAILURE) != 0){
+        *target = CBSP_INTERNAL_convertStringToOrigin(raworigin);
+    }
+    return;
 }
 
 CBSP* CBSP_loadBSP(const char *filename){

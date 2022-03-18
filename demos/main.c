@@ -18,8 +18,13 @@ int main()
     printf("BSP Version: %x\n", fileowo->mainHeader->version);
     printf("Reading 11 available properties\n");
     // Read each property
+    float *position;
     for (int x = 0; x < fileowo->nEntityCount; x++){
         printf("Found entity, name: %s offset: %d\n", fileowo->mEntity[x].classname, fileowo->mEntity[x].offset);
+        CBSP_getOriginFromEntity(&fileowo->mEntity[x], &position);
+        if (position != NULL){
+            printf("Found origin: %f %f %f\n", position[0], position[1], position[2]);
+        }
     }
 
     for (int x = 0; x < fileowo->nTex; x++){
@@ -72,6 +77,5 @@ int main()
     for (int x = 0; x < fileowo->nMeshes; x++){
         printf("Found Meshes: Offset: %d\n", fileowo->mMeshes[x].offset);
     }
-
     return 0;
 }
