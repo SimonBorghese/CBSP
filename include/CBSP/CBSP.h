@@ -2,7 +2,7 @@
 #define CBSP_H_INCLUDED
 /*
 *
-* CBSP Loader Version 1.0
+* CBSP Loader Version 1.1
 * Please see the provided license file for license information
 *
 * Author: Simon
@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 
 // Basic BSP Type Def
 typedef uint8_t cbsp_ubyte ;
@@ -140,6 +141,44 @@ typedef struct{
     cbsp_int offset;
 } CBSPMesh;
 
+typedef struct{
+    cbsp_string name[64];
+    cbsp_int brush;
+    cbsp_int unknown;
+} CBSPEffect;
+
+typedef struct{
+    cbsp_int texture;
+    cbsp_int effect;
+    cbsp_int type;
+    cbsp_int vertex;
+    cbsp_int nVertex;
+    cbsp_int mesh;
+    cbsp_int nMesh;
+    cbsp_int lightmap;
+    cbsp_int lmStart[2];
+    cbsp_int lmSize[2];
+    cbsp_float lmOrigin[3];
+    cbsp_float lmVecs[2][3];
+    cbsp_float normals[3];
+    cbsp_int fsize[2];
+} CBSPFace;
+
+typedef struct{
+    cbsp_ubyte lmap[128][128][3];
+} CBSPLightmap;
+
+typedef struct{
+    cbsp_ubyte ambient[3];
+    cbsp_ubyte directional[3];
+    cbsp_ubyte dir[2];
+} CBSPLightvol;
+
+typedef struct{
+    cbsp_int nVec;
+    cbsp_int sVec;
+    cbsp_ubyte *vecs;
+}CBSPVisdata;
 
 /*
 *
@@ -174,6 +213,11 @@ typedef struct{
     cbsp_int nBrushSides;
     cbsp_int nVertexs;
     cbsp_int nMeshes;
+    cbsp_int nEffects;
+    cbsp_int nFaces;
+    cbsp_int nLightmaps;
+    cbsp_int nLightvols;
+    cbsp_int nVisdata;
 
     // The actual arrays of these elements
     // DO NOT ACCESS THIS FIELD UNLESS YOU WANT A LONG STRING OF THE RAW ENTITIES
@@ -189,6 +233,11 @@ typedef struct{
     CBSPBrushsides  *mBrushSides;
     CBSPVertex      *mVertices;
     CBSPMesh        *mMeshes;
+    CBSPEffect       *mEffects;
+    CBSPFace        *mFaces;
+    CBSPLightmap    *mLightmaps;
+    CBSPLightvol    *mLightvols;
+    CBSPVisdata     *mVisdata;
 
     // An array of each entity & the entity count
     cbsp_int nEntityCount;
@@ -196,6 +245,8 @@ typedef struct{
 
 } CBSP;
 
+
+#ifdef CBSP_IMPLEMNT
 // copyLump:
 // target:      the CBSP object in use
 // data:        a uint8 type casted pointer to the raw BSP header data
@@ -206,7 +257,7 @@ cbsp_int CBSP_INTERNAL_copyLump(CBSP *target, uint8_t *data, int lump, size_t st
     cbsp_int len = target->mainHeader->entry[lump].len / structSize;
     *targetLump = (uint8_t*) malloc(structSize * len);
 
-    memcpy((*targetLump), &data[target->mainHeader->entry[lump].offset], target->mainHeader->entry[lump].len-2);
+    memcpy((*targetLump), &data[target->mainHeader->entry[lump].offset], target->mainHeader->entry[lump].len);
     return len;
 }
 
@@ -289,10 +340,8 @@ const char * CBSP_INTERNAL_getKeyFromEntity(CBSP *target, char *targetstr, cbsp_
 }
 
 // Oh look, another dumpster fire function, let me explain lol
-float* CBSP_INTERNAL_convertStringToOrigin(const char *value){
+void CBSP_INTERNAL_convertStringToOrigin(const char *value, float *target){
     // Allocate enough space for our target origin float array
-    float *position = (float*) malloc(sizeof(float) * 3);
-    // Allocate enough space for our string that will contain our string (before it's converted to float)
     char *currentstr = (char*) malloc(sizeof(char) * strlen(value));
     // The current position in the string above
     int strpos = 0;
@@ -303,7 +352,7 @@ float* CBSP_INTERNAL_convertStringToOrigin(const char *value){
         switch (value[p]){
         case ' ':
             // If it's a space, end the current number and convert it to float
-            position[currentNum] = (float) atof(currentstr);
+            target[currentNum] = (float) atof(currentstr);
             // Iterate to the next number
             currentNum++;
             // Reset the string
@@ -311,7 +360,7 @@ float* CBSP_INTERNAL_convertStringToOrigin(const char *value){
             // If we're beyond the third number, return, something's wrong
             if (currentNum > 2){
                 free(currentstr);
-                return position;
+                return;
             }
             break;
         default:
@@ -323,9 +372,9 @@ float* CBSP_INTERNAL_convertStringToOrigin(const char *value){
         }
     }
     // If we made it to the end, convert the current string to float & return
-    position[currentNum] = (float) atof(currentstr);
+    target[currentNum] = (float) atof(currentstr);
     free(currentstr);
-    return position;
+    return;
 }
 
 const char * CBSP_getKeyFromEntity(CBSP_Entity *ent, const char *key){
@@ -338,7 +387,7 @@ void CBSP_getOriginFromEntity(CBSP_Entity *ent, float **target){
     }
     const char *raworigin = CBSP_getKeyFromEntity(ent, "origin");
     if (strcmp(raworigin, CBSP_getKeyFromEntity_FAILURE) != 0 && strcmp(raworigin, CBSP_EOF_FAILURE) != 0){
-        *target = CBSP_INTERNAL_convertStringToOrigin(raworigin);
+        CBSP_INTERNAL_convertStringToOrigin(raworigin, *target);
     }
     return;
 }
@@ -381,7 +430,11 @@ CBSP* CBSP_loadBSP(const char *filename){
         target->nBrushSides =   CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, cBSP_BrushSide,  sizeof(CBSPBrushsides),  (uint8_t**)&target->mBrushSides);
         target->nVertexs =      CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, cBSP_Vertex,     sizeof(CBSPVertex),      (uint8_t**)&target->mVertices);
         target->nMeshes =       CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, cBSP_Meshes,     sizeof(CBSPMesh),        (uint8_t**)&target->mMeshes);
-
+        target->nEffects =       CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, cBSP_Effect,      sizeof(CBSPEffect),       (uint8_t**)&target->mEffects);
+        target->nFaces =        CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, cBSP_Faces,      sizeof(CBSPFace),        (uint8_t**)&target->mFaces);
+        target->nLightmaps =    CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, cBSP_LightMap,   sizeof(CBSPLightmap),    (uint8_t**)&target->mLightmaps);
+        target->nLightvols =    CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, cBSP_LightIllum, sizeof(CBSPLightvol),    (uint8_t**)&target->mLightvols);
+        target->nVisdata =      CBSP_INTERNAL_copyLump(target, (uint8_t*)target->mainHeader, cBSP_Vis,        sizeof(CBSPVisdata),     (uint8_t**)&target->mVisdata);
 
         const char *classname;
         cbsp_int entCount = 0;
@@ -403,4 +456,15 @@ CBSP* CBSP_loadBSP(const char *filename){
     }
     return target;
 }
+#else
+cbsp_int CBSP_INTERNAL_copyLump(CBSP *target, uint8_t *data, int lump, size_t structSize, uint8_t **targetLump);
+
+#define CBSP_getKeyFromEntity_FAILURE "Failed to find key in provided entity"
+#define CBSP_EOF_FAILURE "Got end of class before key"
+extern const char * CBSP_INTERNAL_getKeyFromEntity(CBSP *target, char *targetstr, cbsp_int currentOffset, const char *entity);
+extern float* CBSP_INTERNAL_convertStringToOrigin(const char *value);
+extern const char * CBSP_getKeyFromEntity(CBSP_Entity *ent, const char *key);
+extern void CBSP_getOriginFromEntity(CBSP_Entity *ent, float **target);
+extern CBSP* CBSP_loadBSP(const char *filename);
+#endif
 #endif // CBSP_H_INCLUDED
